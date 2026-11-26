@@ -77,6 +77,7 @@ All code can be executed directly in Google Colab after installing the required 
 
 ```bash
 pip install numpy pandas scipy scikit-learn matplotlib seaborn
+```
 
 ## Author
 
