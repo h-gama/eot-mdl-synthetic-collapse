@@ -62,18 +62,21 @@ Example 2-dimensional projections of original data and after 5 cycles, showing p
 
 --- 
 
-Files: 
+---
 
-* `eot_mdl_simulation.ipynb`: Colab notebook with code to carry out above calculations
-* `simulation_results.csv`: values shown in table above 
-* `figure1_eot_mdl_comparison.png`: progression of various statistics 
-* `figure2_latent_collapse.png`: sample points at start, and after 5 iterations
+## Repository Files
 
-All code may be run via the notebook on Colab, after first installing required additional packages:
+* [`eot_mdl_simulation.ipynb`](eot_mdl_simulation.ipynb) — Google Colab / Jupyter Notebook implementing the recursive loop ($t_0 \to t_5$) and metric evaluation.
+* [`simulation_results.csv`](simulation_results.csv) — Quantitative metrics comparing Standard MDL vs. EOT-MDL across cycles.
+* [`figure1_eot_mdl_comparison.png`](figure1_eot_mdl_comparison.png) — Progression of Wasserstein distance, Differential Entropy, and K-Means Silhouette score.
+* [`figure2_latent_collapse.png`](figure2_latent_collapse.png) — 2D projections illustrating cluster coalescence at $t_5$ and tail preservation under EOT-MDL.
 
-``` 
-pip install numpy pandas scipy sklearn matplotlib seaborn
-``` 
+### Reproducibility
+
+All code can be executed directly in Google Colab after installing the required scientific packages:
+
+```bash
+pip install numpy pandas scipy scikit-learn matplotlib seaborn
 
 ## Author
 
