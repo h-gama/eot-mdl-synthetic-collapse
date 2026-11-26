@@ -1,75 +1,84 @@
-# Entropic Optimal Transport MDL (EOT-MDL)
-### Bounding Latent Space Collapse Under Autophagous Synthetic Data Loops
+# Entropic Optimal Transport MDL (EOT-MDL) 
+### Constraining the extent of latent collapse due to repeated cycles of auto-generated data
 
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Data Mining Theory](https://img.shields.io/badge/Field-Data%20Mining%20%26%20Information%20Theory-informational)]()
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+**Author:** Helena de Almeida Gama, M.S. Data Science, Felician University 
+**Topics of interest:** auto-generated data, Information Theory, Data Mining 
 
-## Overview
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/) 
+[![Current Research Interest](https://img.shields.io/badge/Interest-Synthetic%20Data%20%26%20MDL-purple)]() 
+[![GitHub](https://img.shields.io/badge/Other work-h--gama-black)](https://github.com/h-gama) 
 
-Classical **Minimum Description Length (MDL)** theory unifies core data mining functions—clustering, classification, association rule mining, and anomaly detection—by framing pattern discovery as lossless or near-lossless data compression ($L(D) = L(H) + L(D \mid H)$). 
+--- 
 
-However, under recursive synthetic data training loops ($t_0 \to t_5$), known as **Model Autophagy Disorder (MAD)**, unconstrained compression becomes destructive. Standard MDL discards low-probability tail samples as noise, shrinking distribution variance and collapsing cluster boundaries.
+## Background 
 
-This repository introduces **Entropic Optimal Transport MDL (EOT-MDL)**, an extended theoretical framework that regularizes description length using **Wasserstein distance** and **differential entropy** constraints to preserve minority tail support across recursive generations.
+A large proportion of current machine learning practice will involve some degree of generation of synthetic data, whether for augmenting scarce real data sets, avoiding release of confidential information, reducing labelling effort, and so on. I am interested in the consequences of continuing to generate new training examples from previous AI-generated outputs. This is sometimes referred to as Model Autophagy Disorder (MAD) and results in hitting a "data wall".
 
----
+### Context 
+This work began as a wide-ranging theoretical problem set for a Data Mining class:
+> "Part of building a theory of DM would be to postulate some overarching theory that would encompass most aspects of DM. You could choose an existing area of science, such as compression, and see what aspects of DM would fall under such a rubric. If others seem hard to accommodate, could you modify the basic theory to incorporate them?"
 
-## Theoretical Formulation
+### Extension to synthetic data 
+As noted above and elsewhere, many aspects of Data Mining may be viewed through the lens of MDL. However, this presupposes naturally-occurring data with some degree of irregularity; that is, points further out in the tails will require greater numbers of bits to represent, compared to points closer to areas of higher frequency. As AI-generated examples are used to re-train a model to generate further examples (over successive time periods, $t_0$ through $t_5$), it seems likely that more extreme points would be gradually lost in an attempt to most efficiently describe the remaining points. Thus the range of values represented would reduce over time, with various modes coalescing, and few or no examples remaining to define "normal" behaviour for outlier detection algorithms. It therefore seemed reasonable to attempt to constrain the amount of movement in feature space, measured by 1-Wasserstein distance, as well as impose a minimum level of Differential Entropy, allowing patterns to be detected in the data but retaining some examples from all regions of the original distributions.
 
-To prevent over-compression and latent space degeneration, we augment the classical two-part MDL objective with an optimal transport distortion penalty and a differential entropy lower bound:
+--- 
 
-$$\mathcal{L}_{\text{EOT-MDL}}(H, D_t) = L(H) + L(D_t \mid H) + \lambda \cdot W_1(P_{t_0}, P_t) - \gamma \cdot h(P_t)$$
+## Method 
 
-Where:
-* $L(H) + L(D_t \mid H)$: Standard hypothesis and residual encoding cost in bits.
-* $W_1(P_{t_0}, P_t)$: 1-Wasserstein distance measuring geometric drift from the true empirical distribution $P_{t_0}$.
-* $h(P_t)$: Differential entropy preserving sample diversity and rare tail support.
-* $\lambda, \gamma > 0$: Regularization hyperparameters balancing compression efficiency against distributional fidelity.
+Adding terms to penalise movement away from original data distribution $P_{t_0}$ and loss of entropy:
 
----
+$$\mathcal{L}_{\text{EOT-MDL}}(H, D_t) = L(H) + L(D_t \mid H) + \lambda W_1(P_{t_0}, P_t) - \gamma h(P_t)$$
 
-## Empirical Validation ($t_0 \to t_5$)
+where $L(H)$ is length of model description $H$ and $L(D_t \mid H)$ length required to describe the error terms after application of model to data set $D_t$ (together measured in no. bits); $W_1$ 1-Wasserstein distance between true data distribution and current generated examples; $h$ differential entropy of current data set, to ensure continued representation of extremes; $\lambda$ and $\gamma$ positive constants.
 
-We evaluated Standard MDL against EOT-MDL across five recursive generative iterations ($t_0$ to $t_5$) on a multi-modal distribution containing three primary clusters and a 5% rare uniform tail.
+--- 
 
-### 1. Quantitative Metrics Across Generations
+## Results 
 
-| Generation | Wasserstein (Std MDL) ↓ | Wasserstein (EOT-MDL) ↓ | Entropy (Std MDL) ↑ | Entropy (EOT-MDL) ↑ | K-Means Silhouette (Std) ↑ | K-Means Silhouette (EOT-MDL) ↑ |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **t0 (Real)** | 0.0000 | 0.0000 | 2.3846 | 2.3846 | 0.6612 | 0.6612 |
-| **t1** | 0.4312 | 0.2584 | 2.1388 | 2.3458 | 0.6421 | 0.6590 |
-| **t2** | 0.7854 | 0.3412 | 1.9304 | 2.3410 | 0.6185 | 0.6572 |
-| **t3** | 1.0921 | 0.3985 | 1.7652 | 2.3381 | 0.5910 | 0.6558 |
-| **t4** | 1.3518 | 0.4290 | 1.6389 | 2.3354 | 0.5682 | 0.6545 |
-| **t5** | **1.5645** | **0.4432** | **1.5412** | **2.3336** | **0.5484** | **0.6536** |
+I generated data consisting mainly of 3 modes, plus a further 5% of examples spread more widely. New examples were then generated 5 times in succession, both according to standard MDL criteria only, and with addition of the constraints outlined above.
 
-* **71.7% Reduction in Distributional Drift:** EOT-MDL bounds Wasserstein distortion at `0.4432` by generation $t_5$ compared to `1.5645` under unconstrained compression.
-* **97.9% Information Retention:** Differential entropy remains stable (`2.3336` vs. `2.3846` baseline), preventing tail oblivion.
-* **Downstream Mining Stability:** K-Means clustering silhouette score drops by only `1.1%` under EOT-MDL (`0.6536`), whereas standard MDL degrades by `17.1%` (`0.5484`).
+### Summary statistics 
 
-### 2. Trajectory & Latent Space Visualization
+| No. Cycles | 1- WD to original (MDL) | 1- WD to original (EOT-MDL) | Diff. Entropy (MDL) | Diff. Entropy (EOT-MDL) | Best K-Means score, k=4 (MDL) | Best K-Means score, k=4 (EOT-MDL) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | 
+| **0** | 0.0000 | 0.0000 | 2.3846 | 2.3846 | 0.6612 | 0.6612 | 
+| **1** | 0.4312 | 0.2584 | 2.1388 | 2.3458 | 0.6421 | 0.6590 | 
+| **2** | 0.7854 | 0.3412 | 1.9304 | 2.3410 | 0.6185 | 0.6572 | 
+| **3** | 1.0921 | 0.3985 | 1.7652 | 2.3381 | 0.5910 | 0.6558 | 
+| **4** | 1.3518 | 0.4290 | 1.6389 | 2.3354 | 0.5682 | 0.6545 | 
+| **5** | 1.5645 | 0.4432 | 1.5412 | 2.3336 | 0.5484 | 0.6536 | 
 
-![EOT-MDL Metric Comparison](figure1_eot_mdl_comparison.png)
+Thus the maximum distance from original data distribution was reduced by about 71.7% (to 0.4432); there was very little overall loss of information, as judged by Differential Entropy (97.9% remaining); and performance of a simple downstream Data Mining algorithm was only marginally affected, with reduction in best achieved Silhouette Coefficient of 1.1%, compared with 17.1% without imposition of constraints.
 
-![Latent Space Collapse Comparison](figure2_latent_collapse.png)
+### Plots 
 
----
+Changes in each measure over successive cycles: 
 
-## Repository Contents
+![Summary statistics](figure1_eot_mdl_comparison.png) 
 
-* [`eot_mdl_simulation.ipynb`](eot_mdl_simulation.ipynb) — Reproducible Google Colab / Jupyter Notebook implementing the recursive loop ($t_0 \to t_5$) and metric evaluation.
-* [`simulation_results.csv`](simulation_results.csv) — Raw quantitative metrics comparing Standard MDL vs. EOT-MDL across generations.
-* [`figure1_eot_mdl_comparison.png`](figure1_eot_mdl_comparison.png) — Multi-metric degradation trajectories (Wasserstein distance, Differential Entropy, K-Means Silhouette).
-* [`figure2_latent_collapse.png`](figure2_latent_collapse.png) — 2D spatial distribution comparison illustrating cluster merging and tail preservation.
+Example 2-dimensional projections of original data and after 5 cycles, showing progressive coalescence of clusters:
 
----
+![Sample points](figure2_latent_collapse.png) 
 
-## Reproducibility
+--- 
 
-To reproduce the simulation and regenerate all figures:
+Files: 
 
-1. Open `eot_mdl_simulation.ipynb` directly in **Google Colab** or a local Jupyter environment.
-2. Ensure the following core libraries are installed:
-   ```bash
-   pip install numpy pandas scipy scikit-learn matplotlib seaborn
+* `eot_mdl_simulation.ipynb`: Colab notebook with code to carry out above calculations
+* `simulation_results.csv`: values shown in table above 
+* `figure1_eot_mdl_comparison.png`: progression of various statistics 
+* `figure2_latent_collapse.png`: sample points at start, and after 5 iterations
+
+All code may be run via the notebook on Colab, after first installing required additional packages:
+
+``` 
+pip install numpy pandas scipy sklearn matplotlib seaborn
+``` 
+
+## Author
+
+Helena de Almeida Gama
+
+M.S. in Data Science Candidate — Felician University (Rutherford, NJ)
+
+Passionate about synthetic data generation, distributional robustness, and theoretical foundations of machine learning.
